@@ -9,7 +9,6 @@ from config import ConfigType
 class ProxyChecker(Tool):
     def __init__(self, app):
         super().__init__("Proxy Checker", "Checks proxies from a list of http proxies", app)
-
         self.cache_file_path = os.path.join(self.cache_directory, "verified-proxies.txt")
 
     def run(self):
@@ -20,119 +19,94 @@ class ProxyChecker(Tool):
         self.timeout = ConfigType.integer(self.config, "timeout")
         self.max_threads = ConfigType.integer(self.config, "max_threads")
 
-        if self.timeout is None:
-            raise Exception("timeout must not be null.")
-
+        if not self.timeout:
+            raise Exception("Timeout must not be null.")
         if not self.check_timezone and self.filter_timezone:
-            raise Exception("You can't filter timezone if you don't check timezone.")
+            raise Exception("Cannot filter timezone without checking timezone.")
 
-        # make sure format of the file is good
         self.check_proxies_file_format(self.proxies_file_path)
 
-        # make sure ipinfo token is good
-        if self.ipinfo_api_key != None and self.check_timezone:
+        if self.ipinfo_api_key and self.check_timezone:
             self.check_ipinfo_token(self.ipinfo_api_key)
 
-        # get proxies lines
-        f = open(self.proxies_file_path, 'r+')
-        lines = f.read().splitlines()
-        lines = [*set(lines)] # remove duplicates
-        f.close()
+        with open(self.proxies_file_path, 'r') as file:
+            lines = list(set(file.read().splitlines()))  # Remove duplicates
 
         if self.delete_failed_proxies:
-            # open cache to start writing in it
-            f = open(self.cache_file_path, 'w')
-            f.seek(0)
-            f.truncate()
+            # Clear the cache file if we are deleting failed proxies
+            open(self.cache_file_path, 'w').close()
 
         working_proxies = 0
         failed_proxies = 0
         total_proxies = len(lines)
 
-        # for each line, test the proxy
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads) as self.executor:
-            self.results = [self.executor.submit(self.test_proxy_line, line ) for line in lines]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads) as executor:
+            future_to_proxy = {executor.submit(self.test_proxy_line, line): line for line in lines}
 
-            for future in concurrent.futures.as_completed(self.results):
+            for future in concurrent.futures.as_completed(future_to_proxy):
                 is_working, proxy_type, proxy_ip, proxy_port, proxy_user, proxy_pass, timezone = future.result()
+
+                proxy_line = self.write_proxy_line(proxy_type, proxy_ip, proxy_port, proxy_user, proxy_pass)
+                response_text = proxy_line
+
+                if timezone:
+                    response_text += f" {timezone}"
+
+                    if self.filter_timezone and self.filter_timezone.lower() not in timezone.lower():
+                        response_text += " Skipped. Timezone not matching filter."
+                        is_working = False
 
                 if is_working:
                     working_proxies += 1
                 else:
                     failed_proxies += 1
 
-                proxy_line = self.write_proxy_line(proxy_type, proxy_ip, proxy_port, proxy_user, proxy_pass)
-
-                response_text = proxy_line
-
-                if timezone is not None:
-                    response_text = f"{response_text} {timezone}"
-
-                    if self.filter_timezone and self.filter_timezone.lower() not in timezone.lower():
-                        response_text = f"{response_text} Skipped. Timezone not matching filter."
-                        is_working = False
-
                 if self.delete_failed_proxies and is_working:
-                    f.write(proxy_line + "\n")
-                    f.flush()
+                    with open(self.cache_file_path, 'a') as cache_file:
+                        cache_file.write(proxy_line + "\n")
 
                 self.print_status(working_proxies, failed_proxies, total_proxies, response_text, is_working, "Working")
 
         if self.delete_failed_proxies:
-            f.close()
-
-            # replace file with cache
-            with open(self.proxies_file_path, 'w') as destination_file:
-                with open(self.cache_file_path, 'r') as source_file:
-                    destination_file.seek(0)
-                    destination_file.truncate()
-                    destination_file.write(source_file.read())
+            with open(self.proxies_file_path, 'w') as destination_file, open(self.cache_file_path, 'r') as source_file:
+                destination_file.write(source_file.read())
 
     def check_ipinfo_token(self, token: str):
-        response = httpc.get("https://ipinfo.io/8.8.8.8?token="+token)
-
+        response = httpc.get(f"https://ipinfo.io/8.8.8.8?token={token}")
         if response.status_code != 200:
-            error_msg = "Error from IpInfo: " + response.text
-            raise Exception(error_msg)
+            raise Exception("Error from IpInfo: " + response.text)
 
     def test_proxy_line(self, line):
         """
-        Checks if a line proxy is working
+        Checks if a proxy line is working
         """
-
         line = Utils.clear_line(line)
-
         proxy_type_provided, proxy_type, proxy_ip, proxy_port, proxy_user, proxy_pass = self.get_proxy_values(line)
 
         if proxy_type_provided:
             proxies = self.get_proxies(proxy_type, proxy_ip, proxy_port, proxy_user, proxy_pass)
             is_working = self.test_proxy(proxies, self.timeout)
         else:
-            # if protocol not specified, try all protocols...
             for protocol in self.supported_proxy_protocols:
                 proxies = self.get_proxies(protocol, proxy_ip, proxy_port, proxy_user, proxy_pass)
-                is_working = self.test_proxy(proxies, self.timeout)
-                if is_working:
+                if self.test_proxy(proxies, self.timeout):
                     proxy_type = protocol
+                    is_working = True
                     break
+            else:
+                is_working = False
 
         timezone = None
-
         if is_working and self.check_timezone:
-            api_key_param = f'?token={self.ipinfo_api_key}' if self.ipinfo_api_key else ''
-
-            if self.ip_address_is_valid(proxy_ip):
-                req_url = f'http://ipinfo.io/{proxy_ip}/json{api_key_param}'
-
-                res = httpc.get(req_url)
-            else:
-                req_url = f'http://ipinfo.io/json{api_key_param}'
-
-                res = httpc.get(req_url, proxies=proxies)
-
-            timezone = res.json().get("timezone")
+            timezone = self.get_timezone(proxy_ip, proxies)
 
         return is_working, proxy_type, proxy_ip, proxy_port, proxy_user, proxy_pass, timezone
+
+    def get_timezone(self, proxy_ip, proxies):
+        api_key_param = f'?token={self.ipinfo_api_key}' if self.ipinfo_api_key else ''
+        req_url = f'http://ipinfo.io/{proxy_ip}/json{api_key_param}' if self.ip_address_is_valid(proxy_ip) else f'http://ipinfo.io/json{api_key_param}'
+        response = httpc.get(req_url, proxies=proxies if not self.ip_address_is_valid(proxy_ip) else None)
+        return response.json().get("timezone")
 
     def ip_address_is_valid(self, ip_string):
         try:
