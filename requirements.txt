@@ -1,0 +1,17 @@
+anticaptchaofficial==1.0.56
+2captcha-python==1.2.1
+capsolver==1.0.7
+Pillow==10.0.0
+python-resize-image==1.1.20
+mail-parser==3.15.0
+pyinstaller==5.13.2
+psutil==5.9.6
+tls-client==0.2.2
+pywin32==306
+httpx==0.25.0
+click==8.1.7
+PyGetWindow==0.0.9
+humanize==4.9.0
+prompt-toolkit==3.0.43
+Pygments==2.17.2
+cryptography==42.0.5
