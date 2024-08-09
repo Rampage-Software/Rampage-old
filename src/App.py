@@ -224,7 +224,8 @@ class App():
             "Content-Type": "application/json"
         }
         req_params = {
-            "key": key
+            "key": key,
+            "hwid": Utils.get_hwid()
         }
 
         response = httpc.get(req_url, headers=req_headers, params=req_params)
@@ -235,36 +236,9 @@ class App():
         if not response.status_code in [200, 400]:
             print("Response: ", response.text)
             self.set_license_key("your_key_here")
-            raise Exception("Failed to verify license key. We are currently experiencing issues. Try again later")
+            raise Exception("Failed to verify license key or HWID. We are currently experiencing issues. Try again later")
 
         result = response.json()
-
-        # try:
-        #     userid = result["userid"]
-            
-        # except KeyError:
-        #     return False
-
-        # my_hwid = Utils.get_hwid()
-
-        # if hwid is None:
-        #     req_url = "https://www.3rr0r.lol/api/hwid.js"
-        #     req_headers = {
-        #         "Content-Type": "application/json"
-        #     }
-        #     req_json = {
-        #         "hwid": my_hwid,
-        #         "key": key
-        #     }
-
-        #     response = httpc.patch(req_url, headers=req_headers, json=req_json)
-
-        #     if response.status_code != 200:
-        #         raise Exception("Something went wrong when setting new HWID. Please contact support. "+ response.text)
-        #         time.sleep(5)
-        # elif hwid != my_hwid:
-        #     raise Exception("HWID mismatch. Please reset your HWID or contact support")
-        #     time.sleep(5)
 
         # time.sleep(5)
 
