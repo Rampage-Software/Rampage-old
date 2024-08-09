@@ -204,20 +204,15 @@ class App():
 
     def verify_license(self):
         try:
-            f = open(self.config_file_path)
+            with open(self.config_file_path) as f:
+                data = f.read()
         except FileNotFoundError:
             raise Exception("Config file not found. Make sure to have it in files/config.json")
 
-        data = f.read()
-        f.close()
         x = json.loads(data)
-
         key = x["License"]["key"]
 
         print(key)
-
-        if key == "your_key_here":
-            return False
 
         req_url = "https://www.3rr0r.lol/api/verify.js"
         req_headers = {
@@ -225,7 +220,7 @@ class App():
         }
         req_params = {
             "key": key,
-            "hwid": Utils.get_hwid()
+            "hwid": self.get_hwid()
         }
 
         response = httpc.get(req_url, headers=req_headers, params=req_params)
@@ -233,15 +228,11 @@ class App():
         if response.status_code == 429:
             raise Exception("Rate limited. Try again later")
 
-        if not response.status_code in [200, 400]:
+        if response.status_code not in [200, 400]:
             print("Response: ", response.text)
-            self.set_license_key("your_key_here")
             raise Exception("Failed to verify license key or HWID. We are currently experiencing issues. Try again later")
 
         result = response.json()
-
-        # time.sleep(5)
-
         return response.status_code == 200
 
     def set_license_key(self, key):
