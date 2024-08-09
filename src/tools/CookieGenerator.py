@@ -17,6 +17,7 @@ class CookieGenerator(Tool):
 
     def run(self):
         self.vanity = ConfigType.string(self.config, "vanity")
+        self.is_vanity_random = ConfigType.boolean(self.config, "is_vanity_random")
         self.custom_password = ConfigType.string(self.config, "custom_password")
         self.gender = ConfigType.string(self.config, "gender")
         self.unflag = ConfigType.boolean(self.config, "unflag")
@@ -24,6 +25,7 @@ class CookieGenerator(Tool):
         self.use_proxy = ConfigType.boolean(self.config, "use_proxy")
         self.max_threads = ConfigType.integer(self.config, "max_threads")
         self.max_generations = Config.input_max_generations()
+        self.use_pow = ConfigType.boolean(self.config, "use_pow")
 
         if not self.max_generations or not self.captcha_solver:
             raise Exception("max_generations and captcha_solver must not be null.")
@@ -72,6 +74,7 @@ class CookieGenerator(Tool):
         req_url = "https://auth.roblox.com/v1/usernames/validate"
         req_headers = httpc.get_roblox_headers(user_agent, csrf_token)
         req_json={"birthday": birthday, "context": "Signup", "username": username}
+        last_vanity = 0
 
         response = client.post(req_url, headers=req_headers, json=req_json)
 
@@ -95,6 +98,19 @@ class CookieGenerator(Tool):
             word1 = word1.title()
             word2 = word2.title()
             generated_username = f"{word1}{word2}{random.randint(1, 9999)}"
+        elif not self.is_vanity_random:
+            # if not self.is_vanity_random, we will try to generate a username until we find a valid one
+            generated_username = self.vanity
+            last_vanity = 0
+            while True:
+                if last_vanity == 0:
+                    last_vanity = 1
+                else:
+                    last_vanity += 1
+                    generated_username = f"{self.vanity}{last_vanity}"
+
+                if self.verify_username(httpc.get_random_user_agent(), self.get_csrf_token(None, None), generated_username, self.generate_birthday(), httpc.Session())[0]:
+                    break
         else:
             characters = string.ascii_uppercase + string.digits
             random_chars = ''.join(random.choice(characters) for _ in range(6))
@@ -185,7 +201,7 @@ class CookieGenerator(Tool):
                 is_girl = random.choice([True, False])
 
             sign_up_req = self.send_signup_request(user_agent, csrf_token, username, password, birthday, is_girl, client)
-            sign_up_res = captcha_solver.solve_captcha(sign_up_req, "ACTION_TYPE_WEB_SIGNUP", proxies_line, client)
+            sign_up_res = captcha_solver.solve_captcha(sign_up_req, "ACTION_TYPE_WEB_SIGNUP", proxies_line, client, self.use_pow)
 
             try:
                 cookie = httpc.extract_cookie(sign_up_res, ".ROBLOSECURITY")

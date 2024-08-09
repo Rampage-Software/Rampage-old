@@ -66,9 +66,11 @@ config = {
     },
     "CookieGenerator": {
         "vanity": None,
+        "is_vanity_random": False,
         "custom_password": None,
         "gender": None,
         "unflag": False,
+        "use_pow": True,
         "captcha_solver": "capbypass",
         "use_proxy": True,
         "max_threads": 50
@@ -139,7 +141,8 @@ config = {
     "GameVisits": {
         "timeout": 10,
         "place_id": 0,
-        "max_threads": 5
+        "max_threads": 5,
+        "roblox_path": None
     },
     "GameVote": {
         "game_id": 0,

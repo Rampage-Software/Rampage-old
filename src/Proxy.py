@@ -52,12 +52,8 @@ class Proxy():
 
             # make sure no line is empty
             if line == "":
-                raise SyntaxError("Please remove the empty line", (
-                    file_path,
-                    line_number,
-                    None,
-                    line
-                ))
+                lines.remove(line)
+                continue
 
             try:
                 proxy_type_provided, proxy_type, proxy_ip, proxy_port, proxy_user, proxy_pass = self.get_proxy_values(line)
@@ -80,12 +76,8 @@ class Proxy():
 
             # validate proxy_port
             if not (0 <= proxy_port and proxy_port <= 65536):
-                raise SyntaxError("Proxy port must be between 0 and 65536", (
-                    file_path,
-                    line_number,
-                    None,
-                    line
-                ))
+                lines.remove(line)
+                continue
 
         # if 0 proxy found, display error message
         if len(lines) == 0:

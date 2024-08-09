@@ -17,13 +17,19 @@ class GameVisits(Tool):
         self.place_id = ConfigType.integer(self.config, "place_id")
         self.max_threads = ConfigType.integer(self.config, "max_threads")
         self.max_generations = Config.input_max_generations()
+        self.roblox_path = ConfigType.string(self.config, "roblox_path")
 
         if self.timeout is None or not self.place_id:
             raise Exception("timeout and place_id must not be null.")
+        
+        if self.roblox_path is None:
+            roblox_player_path = RobloxClient.find_roblox_player()
+        else:
+            if not Utils.is_valid_path(self.roblox_path):
+                raise Exception(f"Invalid path: {self.roblox_path}")
+            roblox_player_path = self.roblox_path
 
         click.secho("Warning: on Windows 11, it may not be possible to run multiple roblox instances", fg="yellow")
-
-        roblox_player_path = RobloxClient.find_roblox_player()
 
         if self.max_threads == None or self.max_threads > 1:
             threading.Thread(target=Tool.run_until_exit, args=(RobloxClient.remove_singleton_mutex,)).start()

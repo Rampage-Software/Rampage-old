@@ -27,7 +27,7 @@ class CaptchaSolver(Proxy):
         if not self.api_key:
             raise Exception(f"API Key for {self.captcha_service} must be set.")
 
-    def solve_captcha(self, response, action_type:str, proxy_line:str, client):
+    def solve_captcha(self, response, action_type:str, proxy_line:str, client, solve_pow:bool=False):
         """
         Resolves a Roblox "Challenge is required..." request using the specified captcha service.
         Returns the captcha bypassed response from the request.
