@@ -171,8 +171,6 @@ def generate_cookie(self, proxies_line):
         captcha_solver = CaptchaSolver(self.captcha_solver, self.captcha_tokens.get(self.captcha_solver))
         user_agent = httpc.get_random_user_agent()
 
-        csrf_token = self.get_csrf_token(None, client)
-
         birthday = self.generate_birthday()
 
         retry_count = 0
