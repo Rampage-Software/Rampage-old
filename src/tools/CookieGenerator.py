@@ -163,49 +163,40 @@ class CookieGenerator(Tool):
 
         return response
 
-    @Utils.handle_exception()
-    def generate_cookie(self, proxies_line):
-        """
-        Generates a ROBLOSECURITY cookie
-        Returns a tuple with the error and the cookie
-        """
-        proxies = self.convert_line_to_proxy(proxies_line) if proxies_line else None
+@Utils.handle_exception()
+def generate_cookie(self, proxies_line):
+    proxies = self.convert_line_to_proxy(proxies_line) if proxies_line else None
 
-        with httpc.Session(proxies=proxies, spoof_tls=True) as client:
-            captcha_solver = CaptchaSolver(self.captcha_solver, self.captcha_tokens.get(self.captcha_solver))
-            user_agent = httpc.get_random_user_agent()
-            csrf_token = self.get_csrf_token(None, client)
+    with httpc.Session(proxies=proxies, spoof_tls=True) as client:
+        captcha_solver = CaptchaSolver(self.captcha_solver, self.captcha_tokens.get(self.captcha_solver))
+        user_agent = httpc.get_random_user_agent()
 
-            birthday = self.generate_birthday()
+        csrf_token = self.get_csrf_token(None, client)
 
-            retry_count = 0
-            while retry_count < 5:
-                username = self.generate_username()
-                is_username_valid, response_text = self.verify_username(user_agent, csrf_token, username, birthday, client)
+        birthday = self.generate_birthday()
 
-                if is_username_valid:
-                    break
+        retry_count = 0
+        while retry_count < 5:
+            username = self.generate_username()
+            is_username_valid, response_text = self.verify_username(user_agent, csrf_token, username, birthday, client)
 
-                retry_count += 1
+            if is_username_valid:
+                break
 
-            if not is_username_valid:
-                raise Exception(f"Failed to generate a valid username after {retry_count} tries. ({response_text})")
+            retry_count += 1
 
-            password = self.custom_password or self.generate_password()
+        if not is_username_valid:
+            raise Exception(f"Failed to generate a valid username after {retry_count} tries. ({response_text})")
 
-            if self.gender == 'female':
-                is_girl = True
-            elif self.gender == 'male':
-                is_girl = False
-            else:
-                is_girl = random.choice([True, False])
+        password = self.custom_password or self.generate_password()
+        is_girl = (self.gender == 'female')
 
-            sign_up_req = self.send_signup_request(user_agent, csrf_token, username, password, birthday, is_girl, client)
-            sign_up_res = captcha_solver.solve_captcha(sign_up_req, "ACTION_TYPE_WEB_SIGNUP", proxies_line, client, self.use_pow)
+        sign_up_req = self.send_signup_request(user_agent, csrf_token, username, password, birthday, is_girl, client)
+        sign_up_res = captcha_solver.solve_captcha(sign_up_req, "ACTION_TYPE_WEB_SIGNUP", proxies_line, client, self.use_pow)
 
-            try:
-                cookie = httpc.extract_cookie(sign_up_res, ".ROBLOSECURITY")
-            except Exception:
-                raise Exception(Utils.return_res(sign_up_res))
+        try:
+            cookie = httpc.extract_cookie(sign_up_res, ".ROBLOSECURITY")
+        except Exception:
+            raise Exception(Utils.return_res(sign_up_res))
 
-        return True, f"{username}:{password}:{cookie}"
+    return True, f"{username}:{password}:{cookie}"
