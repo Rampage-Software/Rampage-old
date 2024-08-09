@@ -220,7 +220,7 @@ class App():
         }
         req_params = {
             "key": key,
-            "hwid": self.get_hwid()
+            "hwid": Utils.get_hwid()
         }
 
         response = httpc.get(req_url, headers=req_headers, params=req_params)
