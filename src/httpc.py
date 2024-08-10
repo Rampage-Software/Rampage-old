@@ -14,11 +14,7 @@ def get_roblox_headers(user_agent = None, csrf_token = None, content_type = None
     Returns a dict of headers for Roblox requests
     """
     req_headers = {
-<<<<<<< HEAD
-        "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"126\"",
-=======
-        "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"24\", \"Chromium\";v=\"122\"",
->>>>>>> parent of 885991e (Update httpc.py)
+        "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"24\", \"Chromium\";v=\"126.0.6478.127\"",
         "Sec-Ch-Ua-Mobile": "?0",
         "Content-Type": "application/json;charset=UTF-8",
         "Accept": "application/json, text/plain, */*",
