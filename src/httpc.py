@@ -14,18 +14,16 @@ def get_roblox_headers(user_agent = None, csrf_token = None, content_type = None
     Returns a dict of headers for Roblox requests
     """
     req_headers = {
-        "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"24\", \"Chromium\";v=\"122\"",
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Content-Type": "application/json;charset=UTF-8",
         "Accept": "application/json, text/plain, */*",
-        "Sec-Ch-Ua-Platform": "\"Windows\"",
-        "Origin": "https://www.roblox.com",
-        "Sec-Fetch-Site": "same-site",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Dest": "empty",
-        "Referer": "https://www.roblox.com/",
         "Accept-Language": "en-US,en;q=0.5",
-        "Priority": "u=4, i"
+        "Accept-Encoding": "gzip, deflate",
+        "Content-Type": "application/json;charset=utf-8",
+        "Origin": "https://www.roblox.com",
+        "Referer": "https://www.roblox.com/",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+        "Te": "trailers"
     }
 
     if user_agent is not None:
@@ -75,18 +73,6 @@ def post(url, **kwargs):
     with Session(proxies=proxies) as client:
         return client.post(url, **kwargs)
 
-def patch(url, **kwargs):
-    proxies = kwargs.get("proxies")
-
-    with Session(proxies=proxies) as client:
-        return client.patch(url, **kwargs)
-
-def delete(url, **kwargs):
-    proxies = kwargs.get("proxies")
-
-    with Session(proxies=proxies) as client:
-        return client.delete(url, **kwargs)
-
 class Session():
     def __init__(self, **kwargs):
         self.spoof_tls = kwargs.get("spoof_tls")
@@ -121,9 +107,6 @@ class Session():
     def patch(self, url, **kwargs):
         return self._make_request("PATCH", url, **kwargs)
 
-    def delete(self, url, **kwargs):
-        return self._make_request("DELETE", url, **kwargs)
-
     def _make_request(self, method, url, **kwargs):
         args = {
             "headers": kwargs.get("headers"),
@@ -140,9 +123,9 @@ class Session():
         timeout = kwargs.get("timeout")
 
         if not self.spoof_tls:
-            args["timeout"] = timeout or 4
+            args["timeout"] = timeout
         else:
-            self.session.timeout_seconds = timeout or 4
+            self.session.timeout_seconds = timeout or 10
 
         if method == "GET":
             response = self.session.get(url, **args)
@@ -150,8 +133,6 @@ class Session():
             response = self.session.post(url, **args)
         elif method == "PATCH":
             response = self.session.patch(url, **args)
-        elif method == "DELETE":
-            response = self.session.delete(url, **args)
         else:
             raise ValueError(f"Unsupported HTTP method: {method}")
 
