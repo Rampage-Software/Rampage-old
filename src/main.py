@@ -179,7 +179,7 @@ def show_menu():
     click.echo(click.style("\n   a - ", fg='yellow') +"Open files (proxies/cookies/...)")
     click.echo(click.style("   b - ", fg='blue') +"Setup captcha solver keys")
     click.echo(click.style("   c - ", fg='bright_magenta') +"Edit global settings")
-    click.echo(click.style("   0 - ", fg='red') +"Exit")
+    click.echo(click.style("   d - ", fg='red') +"Exit")
 
     tool_name = None
     selected = False
@@ -205,7 +205,11 @@ def show_menu():
     return tool_name
 
 def sigint_handle(signum, frame):
-    click.secho("\n ✖ Stopping tool please wait... █▒▒▒▒▒▒▒▒▒ 0%", fg=app.color)
+    for i in range(0, 101, 10):
+        bar = '█' * (i // 10) + '▒' * (10 - i // 10)
+        click.secho(f"\n ✖ Stopping tool please wait... {bar} {i}%", fg='red')
+        time.sleep(0.1)  
+
     if tool is not None:
         tool.signal_handler()
         raise KeyboardInterrupt()
@@ -230,6 +234,7 @@ def launch_tool(tool_name):
         click.secho(" ✖ Tool stopped by user ██████████ 100%", fg='red')
     except Exception as err:
         reset_signal_handler()
+        click.secho(f" ✖ An error occurred: {err}", fg='red')
 
         traceback_str = traceback.format_exc()
         click.echo(traceback_str)
@@ -238,7 +243,7 @@ def launch_tool(tool_name):
 def last_step(tool_name):
     click.secho("\n    1 - Run", fg='green')
     click.secho("    2 - Config tool", fg='yellow')
-    click.secho("    5 - Return to menu", fg='cyan')
+    click.secho("    3 - Return to menu", fg='cyan')
 
     wait_option = True
     option = None
