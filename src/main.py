@@ -179,7 +179,7 @@ def show_menu():
     click.echo(click.style("\n   a - ", fg='yellow') +"Open files (proxies/cookies/...)")
     click.echo(click.style("   b - ", fg='blue') +"Setup captcha solver keys")
     click.echo(click.style("   c - ", fg='bright_magenta') +"Edit global settings")
-    click.echo(click.style("   d - ", fg='red') +"Exit")
+    click.echo(click.style("   0 - ", fg='red') +"Exit")
 
     tool_name = None
     selected = False
@@ -205,12 +205,16 @@ def show_menu():
     return tool_name
 
 def sigint_handle(signum, frame):
-    for i in range(0, 101, 10):
-        bar = '█' * (i // 10) + '▒' * (10 - i // 10)
-        click.secho(f"\n ✖ Stopping tool please wait... {bar} {i}%", fg='red')
-        time.sleep(0.1)  
+    progress = 0
+    click.secho("\n ✖ Stopping tool please wait...", fg=app.color)
 
     if tool is not None:
+        while progress <= 100:
+            sys.stdout.write(f"\r█{'█' * (progress // 10)}{'▒' * (10 - progress // 10)} {progress}%")
+            sys.stdout.flush()
+            time.sleep(0.1)  
+            progress += 10
+        
         tool.signal_handler()
         raise KeyboardInterrupt()
 
@@ -231,10 +235,9 @@ def launch_tool(tool_name):
     except (KeyboardInterrupt, EOFError):
         reset_signal_handler()
 
-        click.secho(" ✖ Tool stopped by user ██████████ 100%", fg='red')
+        click.secho("\n ✖ Tool stopped by user ██████████ 100%", fg='red')
     except Exception as err:
         reset_signal_handler()
-        click.secho(f" ✖ An error occurred: {err}", fg='red')
 
         traceback_str = traceback.format_exc()
         click.echo(traceback_str)
@@ -257,7 +260,7 @@ def last_step(tool_name):
             input("\nPress Enter to come back to the menu...")
         elif option == "2":
             config_tool(tool_name)
-        elif option == "5":
+        elif option == "3":
             break
         else:
             click.secho("Invalid option. Please try again.", fg='red')
