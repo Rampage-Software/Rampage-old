@@ -20,7 +20,7 @@ def get_roblox_headers(user_agent = None, csrf_token = None, content_type = None
     'origin': 'https://www.roblox.com',
     'priority': 'u=1, i',
     'referer': 'https://www.roblox.com/',
-    'sec-ch-ua': '"Not)A;Brand";v="99", "Microsoft Edge";v="127", "Chromium";v="127"',
+    'sec-ch-ua': '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"Windows"',
     'sec-fetch-dest': 'empty',
