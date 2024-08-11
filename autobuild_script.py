@@ -16,8 +16,8 @@ tls_dll_path = os.path.join(venv_dir, "Lib/site-packages/tls_client/dependencies
 if not os.path.exists(venv_dir):
     click.secho("Setting up virtual environment...", fg='yellow')
     venv.create(venv_dir, with_pip=True)
-    subprocess.check_call([os.path.join(venv_dir, 'Scripts', 'pip'), 'install', '--upgrade', 'pip'])
-    subprocess.check_call([os.path.join(venv_dir, 'Scripts', 'pip'), 'install', 'click', 'httpx', 'pyinstaller', 'pyarmor'])
+    subprocess.check_call([os.path.join(venv_dir, 'Scripts', 'python'), '-m', 'pip', 'install', '--upgrade', 'pip'])
+    subprocess.check_call([os.path.join(venv_dir, 'Scripts', 'python'), '-m', 'pip', 'install', 'click', 'httpx', 'pyinstaller', 'pyarmor'])
 
 # Activate virtual environment
 activate_script = os.path.join(venv_dir, 'Scripts', 'activate')
@@ -36,7 +36,7 @@ new_version[-1] = str(int(new_version[-1]) + 1)
 new_version = ".".join(new_version)
 click.secho("New version: " + new_version, fg='green')
 with open(version_file_path, 'w') as file:
-    file.write(f"version = \"{new_version}\"")
+    file.write(f'version = "{new_version}"')
 
 # Build the executable
 build_command = f"pyinstaller --onefile --add-data {tls_dll_path};tls_client/dependencies --icon=icon.ico --name=Privatools src/main.py"
