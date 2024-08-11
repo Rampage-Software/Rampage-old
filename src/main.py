@@ -252,7 +252,7 @@ def last_step(tool_name):
             input("\nPress Enter to come back to the menu...")
         elif option == "2":
             config_tool(tool_name)
-        elif option == "5":
+        elif option == "3":
             break
         else:
             click.secho("Invalid option. Please try again.", fg='red')
