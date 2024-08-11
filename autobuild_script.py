@@ -2,7 +2,6 @@ import os
 import subprocess
 import click
 import httpx
-import base64
 
 # Paths
 version_file_path = os.path.join(os.path.dirname(__file__), "./src/data/version.py")
@@ -15,8 +14,11 @@ req_url = "https://raw.githubusercontent.com/Its3rr0rsWRLD/RAMPAGE/main/version.
 response = httpx.get(req_url)
 click.secho("Current version: " + response.text, fg='green')
 
-# Update version
-new_version = input("Version to update: ")
+# Automatically set the new version (you can customize the logic for versioning)
+new_version = response.text.split(".")
+new_version[-1] = str(int(new_version[-1]) + 1)
+new_version = ".".join(new_version)
+click.secho("New version: " + new_version, fg='green')
 with open(version_file_path, 'w') as file:
     file.write(f'version = "{new_version}"')
 
@@ -34,8 +36,3 @@ process2 = subprocess.Popen(
 process2.wait()
 
 click.secho("Packaging and Obfuscation done.", fg='green')
-is_good = input("\n\nPlease verify that nothing bad happened while compiling. Is it good? (y/n): ")
-
-if is_good.lower() != "y":
-    print("\nOk try again...")
-    exit()
