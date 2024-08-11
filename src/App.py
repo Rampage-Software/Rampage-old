@@ -260,7 +260,9 @@ class App():
                 "idapro", "gdb", "valgrind", "strace", "ltrace",
                 "code::blocks", "kdbg", "dbgd", "cygwin", "msvc",
                 "ghidra", "debugger", "tshark", "ngrep", "scapy", "demon",
-                "x-ways", "enview", "debugview", "z3", "radare"
+                "x-ways", "enview", "debugview", "z3", "radare", "binaryninja",
+                "hiew", "ilspy", "capstone", "angr", "hopper", "apimonitor",
+                "pyreveng3",
             ]
 
             for bad_process in bad_processes:
