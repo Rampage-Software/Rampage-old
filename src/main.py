@@ -205,8 +205,10 @@ def show_menu():
     return tool_name
 
 def sigint_handle(signum, frame):
-    progress = 0
-    click.secho("\n ✖ Stopping tool please wait...", fg=app.color)
+    for i in range(0, 101, 10):
+        bar = '█' * (i // 10) + '▒' * (10 - i // 10)
+        click.secho(f"\n ✖ Stopping tool please wait... {bar} {i}%", fg='red')
+        time.sleep(0.1)  
 
     if tool is not None:
         while progress <= 100:
