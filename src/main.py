@@ -238,7 +238,7 @@ def launch_tool(tool_name):
 def last_step(tool_name):
     click.secho("\n    1 - Run", fg='green')
     click.secho("    2 - Config tool", fg='yellow')
-    click.secho("    5 - Return to menu", fg='cyan')
+    click.secho("    3 - Return to menu", fg='cyan')
 
     wait_option = True
     option = None
