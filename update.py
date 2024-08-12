@@ -39,3 +39,32 @@ is_good = input("\n\nPlease verify that nothing bad happened while compiling. Is
 if is_good.lower() != "y":
     print("\nOk try again...")
     exit()
+
+# GitHub API details
+GITHUB_TOKEN = "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"
+GITHUB_REPO = "Its3rr0rsWRLD/RAMPAGE"  # Replace with your GitHub username and repository
+GITHUB_BRANCH = "main"  # Replace with your branch name if different
+GITHUB_PATH = "privatools.exe"  # Path in the repo where the file will be uploaded
+
+# Encode file for upload
+with open(exe_file_path, "rb") as file:
+    file_content = base64.b64encode(file.read()).decode('utf-8')
+
+# GitHub API URL for file upload
+upload_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_PATH}"
+
+# Prepare payload
+payload = {
+    "message": f"Upload {new_version}",
+    "branch": GITHUB_BRANCH,
+    "content": file_content,
+}
+
+# Upload file
+response = httpx.put(upload_url, json=payload, headers={"Authorization": f"token {GITHUB_TOKEN}"})
+
+if response.status_code != 201:
+    click.secho("Failed to upload file. Response: " + response.text, fg='red')
+    exit()
+
+click.secho("File uploaded successfully", fg='green')
