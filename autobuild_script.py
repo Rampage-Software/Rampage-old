@@ -35,7 +35,7 @@ except subprocess.CalledProcessError as e:
     sys.exit(1)
 
 # Obfuscate the build
-obfuscate_command = "pyarmor gen --enable-jit --enable-themida --pack dist/Privatools.exe -r src/main.py -d"
+obfuscate_command = "pyarmor gen --enable-jit --enable-themida --pack dist/Privatools.exe -r src/main.py --clean"
 try:
     subprocess.check_call(obfuscate_command, shell=True)
 except subprocess.CalledProcessError as e:
