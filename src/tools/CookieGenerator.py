@@ -5,6 +5,7 @@ import httpc
 import click
 from Tool import Tool
 from CaptchaSolver import CaptchaSolver
+from config import ConfixType, Config
 from utils import Utils
 from data.adjectives import adjectives
 from data.nouns import nouns
@@ -21,8 +22,7 @@ class CookieGenerator(Tool):
 
         worked_gen = 0
         failed_gen = 0
-        total_gen = self.config["max_generations"]
-
+        total_gen = Config.
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.config["max_workers"]) as self.executor:
             self.results = [self.executor.submit(self.generate_cookie, self.config["vanity"], self.config["custom_password"], self.config["captcha_solver"], self.config["use_proxy"]) for gen in range(self.config["max_generations"])]
 
