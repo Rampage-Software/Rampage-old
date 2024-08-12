@@ -27,18 +27,10 @@ with open(version_file_path, 'w') as file:
 
 # Build the executable
 build_command = f"pyinstaller --onefile --add-data {tls_dll_path};tls_client/dependencies --icon=icon.ico --name=Privatools src/main.py"
-try:
-    subprocess.check_call(build_command, shell=True)
-except subprocess.CalledProcessError as e:
-    click.secho(f"Build failed: {e}", fg='red')
-    sys.exit(1)
+subprocess.check_call(build_command, shell=True)
 
 # Obfuscate the build
 obfuscate_command = "pyarmor gen --enable-jit --enable-themida --pack dist/Privatools.exe -r src/main.py"
-try:
-    subprocess.check_call(obfuscate_command, shell=True)
-except subprocess.CalledProcessError as e:
-    click.secho(f"Obfuscation failed: {e}", fg='red')
-    sys.exit(1)
+subprocess.check_call(obfuscate_command, shell=True)
 
 click.secho("Packaging and Obfuscation done.", fg='green')
