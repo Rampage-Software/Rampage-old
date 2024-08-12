@@ -47,30 +47,28 @@ class FollowBot(Tool):
 
                 self.print_status(req_worked, req_failed, total_req, response_text, is_followed, "New followers", self.debug_mode)
 
-@Utils.handle_exception()
-def send_follow_request(self, cookie, proxies_line):
-    time.sleep(self.timeout)
+    @Utils.handle_exception()
+    def send_follow_request(self, cookie, proxies_line):
+        """
+        Send a follow request to a user
+        """
+        time.sleep(self.timeout)
 
-    proxies = self.convert_line_to_proxy(proxies_line) if proxies_line else None
+        proxies = self.convert_line_to_proxy(proxies_line) if proxies_line else None
 
-    with httpc.Session(proxies=proxies, spoof_tls=True, timeout=3) as client:
-        captcha_solver = CaptchaSolver(self.captcha_solver, self.captcha_tokens.get(self.captcha_solver), self.debug_mode, self.solve_pow)
-        user_agent = httpc.get_random_user_agent()
-        csrf_token = self.get_csrf_token(cookie, client)
+        with httpc.Session(proxies=proxies, spoof_tls=True, timeout=3) as client:
+            captcha_solver = CaptchaSolver(self.captcha_solver, self.captcha_tokens.get(self.captcha_solver), self.debug_mode, self.solve_pow)
+            user_agent = httpc.get_random_user_agent()
+            csrf_token = self.get_csrf_token(cookie, client)
 
-        session_cookies = self.get_session_cookies(cookie, user_agent, client)
+            session_cookies = self.get_session_cookies(cookie, user_agent, client)
 
-        req_url = f"https://friends.roblox.com/v1/users/{self.user_id}/follow"
-        req_cookies = session_cookies
-        req_headers = httpc.get_roblox_headers(user_agent, csrf_token)
+            req_url = f"https://friends.roblox.com/v1/users/{self.user_id}/follow"
+            req_cookies = session_cookies
+            req_headers = httpc.get_roblox_headers(user_agent, csrf_token)
 
-        init_res = client.post(req_url, headers=req_headers, cookies=req_cookies, allow_redirects=True)
+            init_res = client.post(req_url, headers=req_headers, cookies=req_cookies)
 
-        if init_res.status_code == 302:
-            redirect_url = init_res.headers.get("Location")
-            if redirect_url:
-                init_res = client.post(redirect_url, headers=req_headers, cookies=req_cookies, allow_redirects=True)
+            response = captcha_solver.solve_captcha(init_res, "ACTION_TYPE_FOLLOW_USER", proxies_line, client)
 
-        response = captcha_solver.solve_captcha(init_res, "ACTION_TYPE_FOLLOW_USER", proxies_line, client)
-
-    return (response.status_code == 200), Utils.return_res(response)
+        return (response.status_code == 200), Utils.return_res(response)
