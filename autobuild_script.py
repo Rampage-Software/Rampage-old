@@ -2,7 +2,6 @@ import os
 import subprocess
 import click
 import httpx
-import sys
 
 # Paths
 base_dir = os.path.dirname(__file__)
@@ -35,7 +34,7 @@ except subprocess.CalledProcessError as e:
     sys.exit(1)
 
 # Obfuscate the build
-obfuscate_command = "pyarmor gen --enable-jit --enable-themida --pack dist/Privatools.exe -r src/main.py -d"
+obfuscate_command = "pyarmor gen --enable-jit --enable-themida --pack dist/Privatools.exe -r src/main.py"
 try:
     subprocess.check_call(obfuscate_command, shell=True)
 except subprocess.CalledProcessError as e:
