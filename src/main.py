@@ -10,6 +10,7 @@ import webbrowser
 import threading as Threading
 from JsonEditor import JsonEditor
 import time
+import sys
 
 BUY_LICENSE_URL = "https://rampagee.mysellix.io/"
 DISCORD_INVITE = "https://discord.gg/bmbbNJ99xQ"
