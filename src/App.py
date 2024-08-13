@@ -251,18 +251,7 @@ class App():
         """
         while True:
             bad_processes = [
-                "wireshark", "fiddler", "x96dbg", "x64dbg",
-                "ollydbg", "immunity debugger", "radare2", "ghidra",
-                "dnspy", "procdump", "tcpdump", "netcat", "burpsuite",
-                "mitmproxy", "burpsuite", "charlesproxy", "zaproxy",
-                "cutter", "frida", "hxd", "hexeditor", "apkenv",
-                "apktool", "dex2jar", "jadx", "dexdump", "adb", "apkeditor",
-                "idapro", "gdb", "valgrind", "strace", "ltrace",
-                "code::blocks", "kdbg", "dbgd", "cygwin", "msvc",
-                "ghidra", "debugger", "tshark", "ngrep", "scapy", "demon",
-                "x-ways", "enview", "debugview", "z3", "radare", "binaryninja",
-                "hiew", "ilspy", "capstone", "angr", "hopper", "apimonitor",
-                "pyreveng3"
+                "wireshark", "fiddler", "x96dbg", "x64dbg", "dnspy"
             ]
 
             for bad_process in bad_processes:
