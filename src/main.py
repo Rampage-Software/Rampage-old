@@ -293,8 +293,6 @@ if __name__ == "__main__":
     try:
         ensure_updates()
 
-        time.sleep(5)
-
         valid_license = False
         while valid_license == False:
             valid_license = verify_license()
