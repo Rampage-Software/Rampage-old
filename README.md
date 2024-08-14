@@ -6,7 +6,7 @@
 <p align="center">
 	<a href="#installation">Installation</a> •
 	<a href="#file-templates">File templates</a> •
-  <a href="https://garry.lol/versatools">Website</a> •
+  <a href="https://3rr0r.lol">Website</a> •
 	<a href="https://discord.gg/sV359yYZHY">Discord server</a>
 </p>
 <br/>
