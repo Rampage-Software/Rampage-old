@@ -212,28 +212,7 @@ class App():
         x = json.loads(data)
         key = x["License"]["key"]
 
-        print(key)
-
-        req_url = "https://www.3rr0r.lol/api/verify.js"
-        req_headers = {
-            "Content-Type": "application/json"
-        }
-        req_params = {
-            "key": key,
-            "hwid": Utils.get_hwid()
-        }
-
-        response = httpc.get(req_url, headers=req_headers, params=req_params)
-
-        if response.status_code == 429:
-            raise Exception("Rate limited. Try again later")
-
-        if response.status_code not in [200, 400]:
-            print("Response: ", response.text)
-            raise Exception("Failed to verify license key or HWID. We are currently experiencing issues. Try again later")
-
-        result = response.json()
-        return response.status_code == 200
+        return true
 
     def set_license_key(self, key):
         self.update_config_prop("License", {

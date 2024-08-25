@@ -11,6 +11,7 @@ import threading as Threading
 from JsonEditor import JsonEditor
 import time
 import sys
+from packaging import version
 
 BUY_LICENSE_URL = "https://rampagee.mysellix.io/"
 DISCORD_INVITE = "https://discord.gg/bmbbNJ99xQ"
@@ -30,7 +31,7 @@ def ensure_updates():
     if server_version == False:
         click.secho("Launching...", fg='green')
     else:
-        if app.get_version() != server_version:
+        if version.parse(app.get_version()) < version.parse(server_version):
             click.secho(f"New version available: {server_version}", fg='yellow')
             click.echo("Updating...")
 
@@ -54,7 +55,7 @@ def verify_license():
 
 def ask_license():
     clear_terminal()
-    click.secho("License not found or invalid. Please buy it here: "+BUY_LICENSE_URL, fg='red')
+    click.secho("License not found or invalid. ENTER ANYTHING! Please buy it here: "+BUY_LICENSE_URL, fg='red')
     click.echo("\n    1 - Buy license key")
     click.echo("    2 - Enter license key")
     click.echo("    3 - Exit")

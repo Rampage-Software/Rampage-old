@@ -14,3 +14,4 @@ Versatools.spec
 obf
 .pyarmor
 test2.py
+/node_modules
