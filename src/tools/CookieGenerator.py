@@ -10,61 +10,87 @@ from data.adjectives import adjectives
 from data.nouns import nouns
 from config import ConfigType, Config
 from BoundAuthToken import BATGenerator
+import os
 
 class CookieGenerator(Tool):
     def __init__(self, app):
         super().__init__("Cookie Generator", "Generates Roblox Cookies.", app)
+        self.debug = ConfigType.boolean(self.config, "debug")  # Debug flag
+        self.debug_file = None
+
+    def start_debug_logging(self):
+        if self.debug:
+            self.debug_file = open('debug_log.txt', 'a')
+            self.debug_file.write("Debug logging started\n")
+    
+    def stop_debug_logging(self):
+        if self.debug and self.debug_file:
+            self.debug_file.write("Debug logging ended\n")
+            self.debug_file.close()
+
+    def log_debug(self, message):
+        if self.debug:
+            if self.debug_file:
+                self.debug_file.write(message + '\n')
+                self.debug_file.flush()
 
     def run(self):
-        self.vanity = ConfigType.string(self.config, "vanity")
-        self.is_vanity_random = ConfigType.boolean(self.config, "is_vanity_random")
-        self.custom_password = ConfigType.string(self.config, "custom_password")
-        self.gender = ConfigType.string(self.config, "gender")
-        self.unflag = ConfigType.boolean(self.config, "unflag")
-        self.captcha_solver = ConfigType.string(self.config, "captcha_solver")
-        self.use_proxy = ConfigType.boolean(self.config, "use_proxy")
-        self.max_threads = ConfigType.integer(self.config, "max_threads")
-        self.max_generations = Config.input_max_generations()
-        self.use_pow = ConfigType.boolean(self.config, "use_pow")
+        self.start_debug_logging()
+        
+        try:
+            self.vanity = ConfigType.string(self.config, "vanity")
+            self.is_vanity_random = ConfigType.boolean(self.config, "is_vanity_random")
+            self.custom_password = ConfigType.string(self.config, "custom_password")
+            self.gender = ConfigType.string(self.config, "gender")
+            self.unflag = ConfigType.boolean(self.config, "unflag")
+            self.captcha_solver = ConfigType.string(self.config, "captcha_solver")
+            self.use_proxy = ConfigType.boolean(self.config, "use_proxy")
+            self.max_threads = ConfigType.integer(self.config, "max_threads")
+            self.max_generations = Config.input_max_generations()
+            self.use_pow = ConfigType.boolean(self.config, "use_pow")
 
-        if not self.max_generations or not self.captcha_solver:
-            raise Exception("max_generations and captcha_solver must not be null.")
+            if not self.max_generations or not self.captcha_solver:
+                raise Exception("max_generations and captcha_solver must not be null.")
 
-        if self.gender not in ["male", "female", None]:
-            raise Exception("Gender must be either \"male\" \"female\" or null")
+            if self.gender not in ["male", "female", None]:
+                raise Exception("Gender must be either \"male\" \"female\" or null")
 
-        proxies_lines = self.get_proxies_lines() if self.use_proxy else [None]
+            proxies_lines = self.get_proxies_lines() if self.use_proxy else [None]
 
-        click.secho("Warning: Cookies generated using our tool are region locked.", fg='yellow')
+            click.secho("Warning: Cookies generated using our tool are region locked.", fg='yellow')
 
-        # open cookies.txt for writing in it
-        f = open(self.cookies_file_path, 'a')
+            # open cookies.txt for writing in it
+            f = open(self.cookies_file_path, 'a')
 
-        worked_gen = 0
-        failed_gen = 0
-        total_gen = self.max_generations
+            worked_gen = 0
+            failed_gen = 0
+            total_gen = self.max_generations
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads) as self.executor:
-            self.results = [self.executor.submit(self.generate_cookie, random.choice(proxies_lines)) for gen in range(self.max_generations)]
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads) as self.executor:
+                self.results = [self.executor.submit(self.generate_cookie, random.choice(proxies_lines)) for gen in range(self.max_generations)]
 
-            for future in concurrent.futures.as_completed(self.results):
-                try:
-                    has_generated, upc = future.result()
-                except Exception as e:
-                    has_generated, response_text = False, str(e)
+                for future in concurrent.futures.as_completed(self.results):
+                    try:
+                        has_generated, upc = future.result()
+                    except Exception as e:
+                        has_generated, response_text = False, str(e)
+                        self.log_debug(f"Exception occurred: {response_text}")
 
-                if has_generated:
-                    worked_gen += 1
-                    f.write(upc+"\n")
-                    f.flush()
+                    if has_generated:
+                        worked_gen += 1
+                        f.write(upc+"\n")
+                        f.flush()
 
-                    up_split = upc.split(":")
-                    response_text = f"Account {up_split[0]} generated successfully."
-                else:
-                    failed_gen += 1
+                        up_split = upc.split(":")
+                        response_text = f"Account {up_split[0]} generated successfully."
+                    else:
+                        failed_gen += 1
 
-                self.print_status(worked_gen, failed_gen, total_gen, response_text, has_generated, "Generated")
-        f.close()
+                    self.print_status(worked_gen, failed_gen, total_gen, response_text, has_generated, "Generated")
+            f.close()
+
+        finally:
+            self.stop_debug_logging()
 
     @Utils.handle_exception(2, False)
     def verify_username(self, user_agent:str, csrf_token:str, username:str, birthday: str, client):
@@ -73,10 +99,11 @@ class CookieGenerator(Tool):
         """
         req_url = "https://auth.roblox.com/v1/usernames/validate"
         req_headers = httpc.get_roblox_headers(user_agent, csrf_token)
-        req_json={"birthday": birthday, "context": "Signup", "username": username}
+        req_json={"birthday": birthday, "username": username}
         last_vanity = 0
 
         response = client.post(req_url, headers=req_headers, json=req_json)
+        self.log_debug(f"verify_username request: {req_url} {req_headers} {req_json}")
 
         if response.status_code != 200:
             raise Exception(Utils.return_res(response))
@@ -86,6 +113,7 @@ class CookieGenerator(Tool):
         except KeyError:
             message = Utils.return_res(response)
 
+        self.log_debug(f"verify_username response: {message}")
         return "Username is valid" in message, message
 
     def generate_username(self):
@@ -117,6 +145,7 @@ class CookieGenerator(Tool):
 
             generated_username = f"{self.vanity}_{random_chars}"
 
+        self.log_debug(f"Generated username: {generated_username}")
         return generated_username
 
     def generate_password(self):
@@ -127,13 +156,16 @@ class CookieGenerator(Tool):
         password = ''.join(random.choices(string.ascii_uppercase + string.digits + string.punctuation, k=length))
         password = password.replace(":", "v")
 
+        self.log_debug(f"Generated password: {password}")
         return password
 
     def generate_birthday(self):
         """
         Generates a random birthday
         """
-        return str(random.randint(2006, 2010)).zfill(2) + "-" + str(random.randint(1, 12)).zfill(2) + "-" + str(random.randint(1, 27)).zfill(2) + "T05:00:00.000Z"
+        birthday = str(random.randint(2006, 2010)).zfill(2) + "-" + str(random.randint(1, 12)).zfill(2) + "-" + str(random.randint(1, 27)).zfill(2) + "T05:00:00.000Z"
+        self.log_debug(f"Generated birthday: {birthday}")
+        return birthday
 
     @Utils.handle_exception(3, False)
     def send_signup_request(self, user_agent:str, csrf_token:str, username:str, password:str, birthday:str, is_girl:bool, client):
@@ -160,6 +192,7 @@ class CookieGenerator(Tool):
             req_json["securityAuthIntent"] = authIntent
 
         response = client.post(req_url, headers=req_headers, json=req_json, cookies=req_cookies)
+        self.log_debug(f"send_signup_request request: {req_url} {req_headers} {req_json}")
 
         return response
 
@@ -206,6 +239,8 @@ class CookieGenerator(Tool):
             try:
                 cookie = httpc.extract_cookie(sign_up_res, ".ROBLOSECURITY")
             except Exception:
+                self.log_debug(f"Captcha solving failed: {Utils.return_res(sign_up_res)}")
                 raise Exception(Utils.return_res(sign_up_res))
 
+        self.log_debug(f"Generated cookie: {username}:{password}:{cookie}")
         return True, f"{username}:{password}:{cookie}"

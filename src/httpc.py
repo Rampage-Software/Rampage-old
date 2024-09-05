@@ -3,29 +3,50 @@ import httpx
 import random
 from data.user_agents import user_agents
 
+import tls_client
+import httpx
+import random
+from data.user_agents import user_agents
+
 def get_random_user_agent() -> str:
     """
-    Generates a random user agent
+    Generates a random user agent from the provided list.
     """
     return random.choice(user_agents)
 
-def get_roblox_headers(user_agent = None, csrf_token = None, content_type = None):
+def get_roblox_headers(user_agent=None, csrf_token=None, content_type=None):
     """
-    Returns a dict of headers for Roblox requests
+    Returns a dict of headers for Roblox requests with dynamic values.
     """
+    if user_agent is None:
+        user_agent = get_random_user_agent()
+
+    # Define dynamic values
+    accept_languages = [
+        'en-GB,en;q=0.9,en-US;q=0.8',
+        'en-US,en;q=0.9',
+        'en;q=0.9',
+        'fr-FR,fr;q=0.9',
+        'es-ES,es;q=0.9',
+        'de-DE,de;q=0.9'
+    ]
+    accept_language = random.choice(accept_languages)
+
+    sec_ch_ua = f'"Not;A Brand";v="{random.randint(80, 99)}", "Google Chrome";v="{random.randint(90, 120)}", "Chromium";v="{random.randint(90, 120)}"'
+
     req_headers = {
-    'accept': 'application/json, text/plain, */*',
-    'accept-language': 'en-GB,en;q=0.9,en-US;q=0.8',
-    'content-type': 'application/json',
-    'origin': 'https://www.roblox.com',
-    'priority': 'u=1, i',
-    'referer': 'https://www.roblox.com/',
-    'sec-ch-ua': '"Not)A;Brand";v="99", "Google Chrome";v="127", "Chromium";v="127"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'same-site',
+        'accept': 'application/json, text/plain, */*',
+        'accept-language': accept_language,
+        'content-type': 'application/json',
+        'origin': 'https://www.roblox.com',
+        'priority': 'u=1, i',
+        'referer': 'https://www.roblox.com/',
+        'sec-ch-ua': sec_ch_ua,
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-site',
     }
 
     if user_agent is not None:
@@ -42,40 +63,35 @@ def get_roblox_headers(user_agent = None, csrf_token = None, content_type = None
 def extract_cookie(response, cookie_name):
     cookie = ''.join(response.headers.get("Set-Cookie")).split(f"{cookie_name}=")[1].split(";")[0]
 
-    return cookie
 
 def format_response(response, method, url, **kwargs):
-    # append original request to response
+    # Append original request to response
     response.request = kwargs
     response.request["method"] = method
     response.request["url"] = url
 
-    # format headers
+    # Format headers
     formatted_headers = {}
-
     for key, value in response.headers.items():
         formatted_key = "-".join(word.capitalize() for word in key.split("-"))
         formatted_headers[formatted_key] = value
 
     response.headers = formatted_headers
-
     return response
 
 # Requests without session
 
 def get(url, **kwargs):
     proxies = kwargs.get("proxies")
-
     with Session(proxies=proxies) as client:
         return client.get(url, **kwargs)
 
 def post(url, **kwargs):
     proxies = kwargs.get("proxies")
-
     with Session(proxies=proxies) as client:
         return client.post(url, **kwargs)
 
-class Session():
+class Session:
     def __init__(self, **kwargs):
         self.spoof_tls = kwargs.get("spoof_tls")
         self.proxies = kwargs.get("proxies")
@@ -119,7 +135,7 @@ class Session():
             "files": kwargs.get("files")
         }
 
-        # remove all args that are nulls
+        # Remove all args that are null
         args = {k: v for k, v in args.items() if v is not None}
 
         timeout = kwargs.get("timeout")
@@ -139,5 +155,4 @@ class Session():
             raise ValueError(f"Unsupported HTTP method: {method}")
 
         format_response(response, method, url, **kwargs)
-
         return response
