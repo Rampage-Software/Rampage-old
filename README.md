@@ -1,3 +1,6 @@
+# RAMPAGE IS NOW CARNAGE
+If you have a problem with carnage, deal with it shithead.
+
 <h4 align="center">RAMPAGE - Private Multitool | Bot followers, group joins & more </h4>
 <p align="center">
 	Private Roblox botting tools written in Python.
