@@ -1,5 +1,7 @@
-# RAMPAGE IS NOW CARNAGE
+<h4 align="center">RAMPAGE IS NOW CARNAGE</h4>
+<p align="center">
 If you have a problem with carnage, deal with it shithead.
+</p>
 
 <h4 align="center">RAMPAGE - Private Multitool | Bot followers, group joins & more </h4>
 <p align="center">
